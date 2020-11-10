@@ -45,13 +45,14 @@ char* get_forest(int num_of_trees, FILE* file_pointer) {
 
 int call_process(char* command_line) {
 	// calls a process using the given commad line
+	int buffer_size = (1 + strlen(command_line)); // one more space is needed for wchar_t conversion
 	STARTUPINFO	startinfo = { sizeof(STARTUPINFO), NULL, 0 };
 	PROCESS_INFORMATION pi;
 	PROCESS_INFORMATION* ProcessInfoPtr = &pi;
 	DWORD exit_code;
-	WCHAR w_command_line[COMMAND_LINE_MAX_LENGTH];
+	WCHAR *w_command_line = malloc(buffer_size * sizeof(WCHAR));
 	size_t w_command_line_size;
-	mbstowcs_s(&w_command_line_size, w_command_line, COMMAND_LINE_MAX_LENGTH, command_line, COMMAND_LINE_MAX_LENGTH);
+	mbstowcs_s(&w_command_line_size, w_command_line, buffer_size, command_line, buffer_size);
 	if (!CreateProcess(NULL, w_command_line, NULL, NULL, FALSE, NORMAL_PRIORITY_CLASS, NULL, NULL, &startinfo, ProcessInfoPtr))
 	{
 		printf("Failed to create process (%d).\n", GetLastError());
@@ -60,20 +61,21 @@ int call_process(char* command_line) {
 	// Wait until son.exe exits.
 	WaitForSingleObject(pi.hProcess, INFINITE);
 	GetExitCodeProcess(pi.hProcess, &exit_code);
+	free(w_command_line);
 	return (int)exit_code;
 }
 
 int get_num_of_burned(char* forest) {
 	// this function calculates the number of burned trees in the furest using son.exe
 	//it creates the needed command line and calls call_process to run it
-	int burned_trees_num = 0;
-	char command_line[COMMAND_LINE_MAX_LENGTH]; //we assume that the command line lenght is less then 1000 charecters
-	snprintf(command_line, COMMAND_LINE_MAX_LENGTH, "Son.exe %s", forest);
-
+	int burned_trees_num = 0, command_size = strlen(forest) + COMMAND_CHARECTERS;
+	char *command_line = malloc(command_size * sizeof(char));
+	snprintf(command_line, command_size, "Son.exe %s", forest);
 	burned_trees_num = call_process(command_line);
 	if (burned_trees_num == FAILURE_CODE) {
 		return FAILURE_CODE;
 	}
+	free(command_line);
 	return burned_trees_num;
 
 }
