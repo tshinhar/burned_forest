@@ -6,8 +6,8 @@
 
 #define SUCCESS_CODE ((int)(0))
 #define FAILURE_CODE ((int)(-1))
-#define COMMAND_LINE_MAX_LENGTH 1000
 #define EXRTA_CHARECTERS 6
+#define COMMAND_CHARECTERS 9
 
 char* get_forest(int forest_size, FILE* file_pointer);
 int call_process(char* command_line);
